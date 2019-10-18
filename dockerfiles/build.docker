@@ -1,0 +1,13 @@
+FROM rustlang/rust:nightly-alpine3.10
+
+WORKDIR /project
+COPY Cargo.toml .
+
+# hack for installing dependencies
+RUN mkdir src/ && touch src/main.rs
+RUN echo "fn main() {println!(\"we need this to create docker layer for deps\")}" > src/main.rs
+RUN cargo build
+
+# remove binaries built from default main.rs
+RUN rm -f target/debug/deps/kpi_web_messanger_api-*
+RUN rm -f target/debug/kpi_web_messanger_api-*
