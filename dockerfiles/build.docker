@@ -1,5 +1,7 @@
 FROM rustlang/rust:nightly-alpine3.10
 
+RUN cargo install watchexec
+
 WORKDIR /project
 COPY Cargo.toml .
 

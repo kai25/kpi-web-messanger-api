@@ -4,8 +4,9 @@ build-image:
 run:
 	make build-image
 	docker run -it --rm -v $$(pwd)/src:/project/src \
-	--entrypoint cargo \
-	chat-api-image run
+	-p 3000:3000 \
+	--entrypoint watchexec \
+	chat-api-image -w src cargo run
 
 build:
 	make build-image

@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    network_mode: "host"
+
+  app:
+    image: chat-api-image
+    command: watchexec -w src -r -s SIGKILL cargo run
+    volumes:
+      - ./src:/project/src
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    stop_grace_period: 1s
