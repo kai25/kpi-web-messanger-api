@@ -7,25 +7,22 @@ use hyper::service::{make_service_fn, service_fn};
 use futures::FutureExt;
 use tokio_postgres::{NoTls, Error, Row};
 
+mod models;
+mod db;
+
+use db::{DBBuilder, DB};
+
 async fn query() -> Result<String, Error> {
     // Connect to the database.
-    let (mut client, connection) =
-        tokio_postgres::connect("host=localhost user=postgres password=postgres", NoTls).await?;
+    let mut db_builder = DBBuilder::new();
+    db_builder.set_dbname("chat-api");
 
-    // The connection object performs the actual communication with the database,
-    // so spawn it off to run on its own.
-    let connection = connection.map(|r| {
-        if let Err(e) = r {
-            eprintln!("connection error: {}", e);
-        }
-    });
-
-    tokio::spawn(connection);
-
-
-    let rows: Vec<Row> = client
-        .query("select * from test_table limit 1" ,&[])
-        .await?;
+    let db = match DB::from_config(&db_builder).await {
+        Err(err) => panic!(format!("DBInit error: {:?}", err)),
+        Ok(db) => db,
+    };
+    let q: &str = "select 'hello world'";
+    let rows: Vec<Row> = db.query(q).await?;
 
     // Now we can check that we got back the same string we sent over.
     let value: &str = rows[0].get(0);
@@ -33,8 +30,8 @@ async fn query() -> Result<String, Error> {
 }
 
 async fn serve_req(_req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
-    println!("query {:?}", query().await);
-    Ok(Response::new(Body::from("hello, world!")))
+    let text = query().await.unwrap();
+    Ok(Response::new(Body::from(text)))
 }
 
 #[tokio::main]
