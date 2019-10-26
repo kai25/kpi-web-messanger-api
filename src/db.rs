@@ -54,7 +54,7 @@ impl DBBuilder {
 }
 
 pub struct DB {
-    client: Client,
+    pub client: Client,
 }
 
 impl DB {
@@ -76,10 +76,6 @@ impl DB {
                 })
             },
         }
-    }
-
-    pub async fn query(self, query: &str) -> Result<Vec<Row>, PGError> {
-        self.client.query(query,&[]).await
     }
 }
 

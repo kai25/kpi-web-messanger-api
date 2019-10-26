@@ -11,6 +11,7 @@ mod models;
 mod db;
 
 use db::{DBBuilder, DB};
+use models::{Message, MessageDAO, DAO};
 
 async fn query() -> Result<String, Error> {
     // Connect to the database.
@@ -21,12 +22,15 @@ async fn query() -> Result<String, Error> {
         Err(err) => panic!(format!("DBInit error: {:?}", err)),
         Ok(db) => db,
     };
-    let q: &str = "select 'hello world'";
-    let rows: Vec<Row> = db.query(q).await?;
 
-    // Now we can check that we got back the same string we sent over.
-    let value: &str = rows[0].get(0);
-    Ok(value.to_owned())
+//    MessageDAO::create(&db, &Message { id: 0, text: "another one".to_owned() }).await?;
+
+    let total_text = MessageDAO::get_all(&db)
+        .await?
+        .into_iter()
+        .fold(String::from("List of messages"), |text, message| format!("{}\n{}", text, message));
+
+    Ok(total_text)
 }
 
 async fn serve_req(_req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
