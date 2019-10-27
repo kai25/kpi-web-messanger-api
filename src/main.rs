@@ -1,3 +1,5 @@
+#![feature(async_closure)]
+
 use tokio;
 
 use hyper;
@@ -6,15 +8,19 @@ use hyper::service::{make_service_fn, service_fn};
 
 use futures::FutureExt;
 use tokio_postgres::{NoTls, Error, Row};
+use std::sync::Arc;
 
 mod models;
 mod db;
+mod controllers;
+mod service_registry;
 
 use db::{DBBuilder, DB};
 use models::{Message, MessageDAO, DAO};
+use controllers::{MessageController, Controller};
+use service_registry::{ServiceRegistry};
 
-async fn query() -> Result<String, Error> {
-    // Connect to the database.
+async fn configure_db_service() -> DB {
     let mut db_builder = DBBuilder::new();
     db_builder.set_dbname("chat-api");
 
@@ -23,36 +29,37 @@ async fn query() -> Result<String, Error> {
         Ok(db) => db,
     };
 
-//    MessageDAO::create(&db, &Message { id: 0, text: "another one".to_owned() }).await?;
-
-    let total_text = MessageDAO::get_all(&db)
-        .await?
-        .into_iter()
-        .fold(String::from("List of messages"), |text, message| format!("{}\n{}", text, message));
-
-    Ok(total_text)
+    db
 }
 
 async fn serve_req(_req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
-    let text = query().await.unwrap();
-    Ok(Response::new(Body::from(text)))
+    Ok(Response::new(Body::from("kek")))
 }
 
 #[tokio::main]
 async fn main() {
-    // Construct our SocketAddr to listen on...
     let addr = ([127, 0, 0, 1], 3000).into();
 
-    // And a MakeService to handle each connection...
-    let make_service = make_service_fn(|_| async {
-        Ok::<_, hyper::Error>(service_fn(serve_req))
+    let _service_registry = ServiceRegistry { db: configure_db_service().await };
+    let service_registry = Arc::new(_service_registry);
+
+    let make_service = make_service_fn(move |_| {
+        let service_registry = service_registry.clone();
+        async move {
+            let service_registry = service_registry.clone();
+            Ok::<_, hyper::Error>(service_fn(move |req: Request<Body>| {
+                let service_registry = service_registry.clone();
+                async move {
+                    let service_registry = service_registry.clone();
+                    MessageController::create(service_registry).index(req).await
+                }
+            }))
+        }
     });
 
-    // Then bind and serve...
     let server = Server::bind(&addr)
         .serve(make_service);
 
-    // Finally, spawn `server` onto an Executor...
     if let Err(e) = server.await {
         eprintln!("server error: {}", e);
     }
