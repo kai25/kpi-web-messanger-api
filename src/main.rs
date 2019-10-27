@@ -1,6 +1,7 @@
 #![feature(async_closure)]
 
 use tokio;
+use serde;
 
 use hyper;
 use hyper::{Body, Response, Server, Request};
@@ -30,10 +31,6 @@ async fn configure_db_service() -> DB {
     };
 
     db
-}
-
-async fn serve_req(_req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
-    Ok(Response::new(Body::from("kek")))
 }
 
 #[tokio::main]
