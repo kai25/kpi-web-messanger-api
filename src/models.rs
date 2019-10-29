@@ -1,5 +1,5 @@
 use tokio_postgres::{ Row, Error as DBError };
-use crate::db::DB;
+use crate::db::DBService;
 use futures::Future;
 use async_trait::async_trait;
 use std::fmt::{Display, Formatter, Error as FmtError};
@@ -12,9 +12,9 @@ pub trait Model<T> {
 
 #[async_trait]
 pub trait DAO<T> {
-    async fn get_by_id(db: &DB, id: i32) -> Result<Option<T>, DBError>;
-    async fn create(db: &DB, obj: &T) -> Result<i32, DBError>;
-    async fn get_all(db: &DB) -> Result<Vec<T>, DBError>;
+    async fn get_by_id(db: &DBService, id: i32) -> Result<Option<T>, DBError>;
+    async fn create(db: &DBService, obj: &T) -> Result<i32, DBError>;
+    async fn get_all(db: &DBService) -> Result<Vec<T>, DBError>;
 }
 
 
@@ -43,7 +43,7 @@ pub struct MessageDAO {}
 
 #[async_trait]
 impl DAO<Message> for MessageDAO {
-    async fn get_by_id(db: &DB, id: i32) -> Result<Option<Message>, DBError> {
+    async fn get_by_id(db: &DBService, id: i32) -> Result<Option<Message>, DBError> {
         db.client
             .query("SELECT * FROM messages WHERE id = 0", &[&id]).await
             .map(|rows| {
@@ -55,14 +55,14 @@ impl DAO<Message> for MessageDAO {
             })
     }
 
-    async fn create(db: &DB, obj: &Message) -> Result<i32, DBError> {
+    async fn create(db: &DBService, obj: &Message) -> Result<i32, DBError> {
         db.client
             .query_one("INSERT INTO messages(text) VALUES ($1) RETURNING id", &[&obj.text])
             .await
             .map(|row| row.get(0))
     }
 
-    async fn get_all(db: &DB) -> Result<Vec<Message>, DBError> {
+    async fn get_all(db: &DBService) -> Result<Vec<Message>, DBError> {
         db.client
             .query("SELECT * FROM messages", &[])
             .await

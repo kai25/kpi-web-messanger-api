@@ -53,12 +53,12 @@ impl DBBuilder {
     }
 }
 
-pub struct DB {
+pub struct DBService {
     pub client: Client,
 }
 
-impl DB {
-    pub async fn from_config(config: &DBBuilder) -> Result<DB, PGError> {
+impl DBService {
+    pub async fn from_config(config: &DBBuilder) -> Result<DBService, PGError> {
         let config_line = "host=localhost user=postgres password=postgres dbname=chat-api";
         match tokio_postgres::connect(config_line, NoTls).await {
             Err(err) => return Err(err),
@@ -71,7 +71,7 @@ impl DB {
 
                 spawn(connection);
 
-                Ok(DB {
+                Ok(DBService {
                     client: db_client,
                 })
             },

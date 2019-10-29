@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use hyper::{Response, Request, Body, Error};
 use serde_json;
 
-use crate::db::DB;
+use crate::db::DBService;
 use crate::service_registry::ServiceRegistry;
 use std::sync::Arc;
 use crate::models::{MessageDAO, DAO, Message};

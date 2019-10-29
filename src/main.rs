@@ -16,16 +16,16 @@ mod db;
 mod controllers;
 mod service_registry;
 
-use db::{DBBuilder, DB};
+use db::{DBBuilder, DBService};
 use models::{Message, MessageDAO, DAO};
 use controllers::{MessageController, Controller};
 use service_registry::{ServiceRegistry};
 
-async fn configure_db_service() -> DB {
+async fn configure_db_service() -> DBService {
     let mut db_builder = DBBuilder::new();
     db_builder.set_dbname("chat-api");
 
-    let db = match DB::from_config(&db_builder).await {
+    let db = match DBService::from_config(&db_builder).await {
         Err(err) => panic!(format!("DBInit error: {:?}", err)),
         Ok(db) => db,
     };

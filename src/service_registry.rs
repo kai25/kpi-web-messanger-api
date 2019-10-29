@@ -1,5 +1,5 @@
-use crate::db::DB;
+use crate::db::DBService;
 
 pub struct ServiceRegistry {
-    pub db: DB,
+    pub db: DBService,
 }
