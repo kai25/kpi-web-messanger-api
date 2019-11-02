@@ -13,12 +13,14 @@ use std::sync::Arc;
 
 mod models;
 mod db;
+mod redis_service;
 mod controllers;
 mod service_registry;
 
 use db::{DBBuilder, DBService};
+use redis_service::RedisService;
 use models::{Message, MessageDAO, DAO};
-use controllers::{MessageController, Controller};
+use controllers::{MessageController, AuthController, Controller};
 use service_registry::{ServiceRegistry};
 
 async fn configure_db_service() -> DBService {
@@ -37,7 +39,10 @@ async fn configure_db_service() -> DBService {
 async fn main() {
     let addr = ([127, 0, 0, 1], 3000).into();
 
-    let _service_registry = ServiceRegistry { db: configure_db_service().await };
+    let _service_registry = ServiceRegistry {
+        db: configure_db_service().await,
+        redis: RedisService::configure("redis://localhost:6379").await,
+    };
     let service_registry = Arc::new(_service_registry);
 
     let make_service = make_service_fn(move |_| {
@@ -48,7 +53,7 @@ async fn main() {
                 let service_registry = service_registry.clone();
                 async move {
                     let service_registry = service_registry.clone();
-                    MessageController::create(service_registry).index(req).await
+                    AuthController::create(service_registry).serve(req).await
                 }
             }))
         }

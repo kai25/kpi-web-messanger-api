@@ -5,6 +5,10 @@ services:
     image: postgres
     network_mode: "host"
 
+  redis:
+    image: "redis:alpine"
+    network_mode: "host"
+
   app:
     image: chat-api-image
     command: watchexec -w src -r -s SIGKILL cargo run
