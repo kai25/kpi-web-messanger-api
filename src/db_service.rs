@@ -1,7 +1,7 @@
 use futures::FutureExt;
 
-use tokio_postgres::{NoTls, Client, Error as PGError, Row};
 use tokio::spawn;
+use tokio_postgres::{Client, Error as PGError, NoTls};
 
 pub struct DBBuilder {
     host: String,
@@ -71,12 +71,8 @@ impl DBService {
 
                 spawn(connection);
 
-                Ok(DBService {
-                    client: db_client,
-                })
-            },
+                Ok(DBService { client: db_client })
+            }
         }
     }
 }
-
-

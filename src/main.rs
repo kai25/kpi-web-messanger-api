@@ -1,27 +1,29 @@
 #![feature(async_closure)]
 
+#[macro_use]
+extern crate enum_display_derive;
+extern crate futures_util;
+
+use std::sync::Arc;
 use tokio;
-use serde;
 
 use hyper;
-use hyper::{Body, Response, Server, Request};
 use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Request, Server};
 
-use futures::FutureExt;
-use tokio_postgres::{NoTls, Error, Row};
-use std::sync::Arc;
-
-mod models;
-mod db;
-mod redis_service;
 mod controllers;
+mod db_service;
+mod models_;
+mod permissions;
+mod redis_service;
 mod service_registry;
+mod date_utils;
 
-use db::{DBBuilder, DBService};
+use controllers::MessageController;
+use controllers::Controller;
+use db_service::{DBBuilder, DBService};
 use redis_service::RedisService;
-use models::{Message, MessageDAO, DAO};
-use controllers::{MessageController, AuthController, Controller};
-use service_registry::{ServiceRegistry};
+use service_registry::ServiceRegistry;
 
 async fn configure_db_service() -> DBService {
     let mut db_builder = DBBuilder::new();
@@ -53,14 +55,14 @@ async fn main() {
                 let service_registry = service_registry.clone();
                 async move {
                     let service_registry = service_registry.clone();
-                    AuthController::create(service_registry).serve(req).await
+                    MessageController::new(service_registry).serve(req).await
                 }
             }))
         }
     });
 
-    let server = Server::bind(&addr)
-        .serve(make_service);
+    println!("Listening on {:?}", &addr);
+    let server = Server::bind(&addr).serve(make_service);
 
     if let Err(e) = server.await {
         eprintln!("server error: {}", e);

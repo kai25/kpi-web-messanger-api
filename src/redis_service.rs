@@ -1,9 +1,6 @@
-use redis::{Client, RedisError, aio::Connection, Commands};
+use redis::{aio::Connection, Client, RedisError};
 
-use futures::{
-    compat::Future01CompatExt,
-    future::{TryFutureExt},
-};
+use futures_util::compat::Future01CompatExt;
 
 pub struct RedisService {
     client: Client,
@@ -12,7 +9,8 @@ pub struct RedisService {
 impl RedisService {
     pub async fn configure(address: &str) -> RedisService {
         Client::open(address)
-            .map(|client| RedisService{ client }).unwrap()
+            .map(|client| RedisService { client })
+            .unwrap()
     }
 
     pub async fn get(&self, key: &str) -> Result<Option<String>, RedisError> {
