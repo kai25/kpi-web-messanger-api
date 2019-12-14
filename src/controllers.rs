@@ -4,7 +4,10 @@ use async_trait::async_trait;
 use hyper::{Body, Error, Method, Request, Response, StatusCode};
 use std::sync::Arc;
 
-use crate::models_::{Message, MessageDAO, DAO};
+use crate::models::base::{DAO};
+use crate::models::message::{MessageDAO, Message};
+use crate::models::user::{UserDAO, User};
+
 use crate::service_registry::ServiceRegistry;
 
 type ControllerResponse = Result<Response<Body>, Error>;

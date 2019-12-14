@@ -13,11 +13,11 @@ use hyper::{Body, Request, Server};
 
 mod controllers;
 mod db_service;
-mod models_;
 mod permissions;
 mod redis_service;
 mod service_registry;
 mod date_utils;
+mod models;
 
 use controllers::MessageController;
 use controllers::Controller;

@@ -1,3 +1,6 @@
+// used by diesel migrations
+// should be dropped
+
 table! {
     messages (id) {
         id -> Int4,
